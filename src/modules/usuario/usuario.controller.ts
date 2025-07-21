@@ -20,4 +20,13 @@ export class UsuarioController {
     const jwt = await this.usuarioService.generateJwt(user);
     return { token: jwt, rol: user.rol };
   }
+
+  @Post()
+  async create(@Body() body: any) {
+    // body: { nombre_us, rol, especialista?, paciente? }
+    const usuario = await this.usuarioService.createUsuario(body);
+    return usuario;
+  }
+
+  
 }
