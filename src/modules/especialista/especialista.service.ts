@@ -9,4 +9,10 @@ export class EspecialistaService {
     const result = await db.select().from(especialistas).where(eq(especialistas.id, id));
     return result[0] ?? null;
   }
+
+  async findByUsuarioId(id_us: number) {
+    const { eq } = await import('drizzle-orm');
+    const result = await db.select().from(especialistas).where(eq(especialistas.id_us, id_us));
+    return result[0] ?? null;
+  }
 }
