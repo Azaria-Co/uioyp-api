@@ -5,6 +5,12 @@ import { PostService } from './post.service.js';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  // Obtener todos los posts
+  @Get()
+  findAll() {
+    return this.postService.findAll();
+  }
+
   // Crear post (requiere id_esp, multimedia opcional)
   @Post()
   async create(@Body() body: { titulo: string; texto: string; id_esp: number; multimedia?: string[] }) {

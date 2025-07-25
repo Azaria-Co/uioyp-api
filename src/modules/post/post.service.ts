@@ -1,9 +1,31 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
-import { posts, multimedia } from '../../db/schema.js';
+import { posts, multimedia, especialistas, usuarios } from '../../db/schema.js';
 
 @Injectable()
 export class PostService {
+  async findAll() {
+    // Traer posts con especialista y nombre_us del usuario
+    const { eq } = await import('drizzle-orm');
+    const result = await db
+      .select({
+        id: posts.id,
+        titulo: posts.titulo,
+        fecha: posts.fecha,
+        texto: posts.texto,
+        id_esp: posts.id_esp,
+        especialista: {
+          id: especialistas.id,
+          area: especialistas.area,
+          id_us: especialistas.id_us,
+          nombre_us: usuarios.nombre_us,
+        },
+      })
+      .from(posts)
+      .leftJoin(especialistas, eq(posts.id_esp, especialistas.id))
+      .leftJoin(usuarios, eq(especialistas.id_us, usuarios.id));
+    return result;
+  }
   async createPost(data: { titulo: string; texto: string; id_esp: number; multimedia: string[] }) {
     // Insertar el post con fecha actual
     const result: any = await db.insert(posts).values({
