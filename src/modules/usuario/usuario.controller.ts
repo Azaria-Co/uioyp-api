@@ -18,7 +18,7 @@ export class UsuarioController {
       return { error: 'Usuario no encontrado' };
     }
     const jwt = await this.usuarioService.generateJwt(user);
-    return { token: jwt, rol: user.rol };
+    return { token: jwt, rol: user.rol, nombre_us: user.nombre_us };
   }
 
   @Post()
