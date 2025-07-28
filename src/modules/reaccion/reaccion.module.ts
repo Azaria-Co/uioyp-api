@@ -1,3 +1,4 @@
+// src/modules/reaccion/reaccion.module.ts
 import { Module } from '@nestjs/common';
 import { ReaccionService } from './reaccion.service.js';
 import { ReaccionController } from './reaccion.controller.js';
