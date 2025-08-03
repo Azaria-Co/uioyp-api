@@ -1,3 +1,4 @@
+// src/modules/reaccion/reaccion.service.ts
 import { Injectable } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { reacciones } from '../../db/schema.js';
