@@ -1,12 +1,15 @@
+// src/modules/post/post.service.ts
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { posts, multimedia, especialistas, usuarios } from '../../db/schema.js';
+import { sql } from 'drizzle-orm';
+
 
 @Injectable()
 export class PostService {
   async findAll() {
-    // Traer posts con especialista y nombre_us del usuario
     const { eq } = await import('drizzle-orm');
+
     const result = await db
       .select({
         id: posts.id,
@@ -20,10 +23,14 @@ export class PostService {
           id_us: especialistas.id_us,
           nombre_us: usuarios.nombre_us,
         },
+        likes: sql<number>`(
+          SELECT COUNT(*) FROM reaccion WHERE reaccion.id_post = ${posts.id}
+        )`.as('likes'),
       })
       .from(posts)
       .leftJoin(especialistas, eq(posts.id_esp, especialistas.id))
       .leftJoin(usuarios, eq(especialistas.id_us, usuarios.id));
+    
     return result;
   }
   async createPost(data: { titulo: string; texto: string; id_esp: number; multimedia: string[] }) {

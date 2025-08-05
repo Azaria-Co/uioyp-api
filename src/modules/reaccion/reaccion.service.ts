@@ -30,13 +30,17 @@ export class ReaccionService {
     return result;
   }
 
+  
+
   async countByPost(id_post: number) {
-    const { eq } = await import('drizzle-orm');
+    const { eq, sql } = await import('drizzle-orm');
     const result = await db
-      .select()
+      .select({
+        count: sql<number>`COUNT(*)`
+      })
       .from(reacciones)
       .where(eq(reacciones.id_post, id_post));
     
-    return result.length;
+    return result[0]?.count ?? 0;
   }
 }

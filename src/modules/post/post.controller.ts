@@ -1,3 +1,4 @@
+//src/modules/post/post.controller.ts
 import { Controller, Post, Delete, Get, Body, Param } from '@nestjs/common';
 import { PostService } from './post.service.js';
 
