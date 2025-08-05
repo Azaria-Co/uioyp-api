@@ -1,12 +1,132 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
-import { bitacoras } from '../../db/schema.js';
+import { bitacoras, pacientes, usuarios } from '../../db/schema.js';
 
 @Injectable()
 export class BitacoraService {
+  async findAll() {
+    const { eq } = await import('drizzle-orm');
+    const result = await db
+      .select({
+        id: bitacoras.id,
+        fecha: bitacoras.fecha,
+        presion_ar: bitacoras.presion_ar,
+        glucosa: bitacoras.glucosa,
+        id_pac: bitacoras.id_pac,
+        paciente: {
+          id: pacientes.id,
+          masa_muscular: pacientes.masa_muscular,
+          tipo_sangre: pacientes.tipo_sangre,
+          enfer_pat: pacientes.enfer_pat,
+          telefono: pacientes.telefono,
+          nombre_us: usuarios.nombre_us,
+        },
+      })
+      .from(bitacoras)
+      .leftJoin(pacientes, eq(bitacoras.id_pac, pacientes.id))
+      .leftJoin(usuarios, eq(pacientes.id_us, usuarios.id));
+    
+    return result;
+  }
+
   async findById(id: number) {
     const { eq } = await import('drizzle-orm');
-    const result = await db.select().from(bitacoras).where(eq(bitacoras.id, id));
+    const result = await db
+      .select({
+        id: bitacoras.id,
+        fecha: bitacoras.fecha,
+        presion_ar: bitacoras.presion_ar,
+        glucosa: bitacoras.glucosa,
+        id_pac: bitacoras.id_pac,
+        paciente: {
+          id: pacientes.id,
+          masa_muscular: pacientes.masa_muscular,
+          tipo_sangre: pacientes.tipo_sangre,
+          enfer_pat: pacientes.enfer_pat,
+          telefono: pacientes.telefono,
+          nombre_us: usuarios.nombre_us,
+        },
+      })
+      .from(bitacoras)
+      .leftJoin(pacientes, eq(bitacoras.id_pac, pacientes.id))
+      .leftJoin(usuarios, eq(pacientes.id_us, usuarios.id))
+      .where(eq(bitacoras.id, id));
+    
     return result[0] ?? null;
+  }
+
+  async findByPaciente(id_pac: number) {
+    const { eq } = await import('drizzle-orm');
+    const result = await db
+      .select({
+        id: bitacoras.id,
+        fecha: bitacoras.fecha,
+        presion_ar: bitacoras.presion_ar,
+        glucosa: bitacoras.glucosa,
+        id_pac: bitacoras.id_pac,
+        paciente: {
+          id: pacientes.id,
+          masa_muscular: pacientes.masa_muscular,
+          tipo_sangre: pacientes.tipo_sangre,
+          enfer_pat: pacientes.enfer_pat,
+          telefono: pacientes.telefono,
+          nombre_us: usuarios.nombre_us,
+        },
+      })
+      .from(bitacoras)
+      .leftJoin(pacientes, eq(bitacoras.id_pac, pacientes.id))
+      .leftJoin(usuarios, eq(pacientes.id_us, usuarios.id))
+      .where(eq(bitacoras.id_pac, id_pac));
+    
+    return result;
+  }
+
+  async create(fecha: string, presion_ar: string, glucosa: number, id_pac: number) {
+    try {
+      console.log('Creando bitácora con datos:', { fecha, presion_ar, glucosa, id_pac });
+      
+      await db.insert(bitacoras).values({
+        fecha: new Date(fecha),
+        presion_ar,
+        glucosa: glucosa.toString(), // Convertir a string para decimal
+        id_pac,
+      });
+      
+      console.log('Bitácora insertada en BD, buscando registro creado...');
+      
+      // Obtener la bitácora recién creada usando los valores insertados
+      const { eq, and, desc } = await import('drizzle-orm');
+      const [bitacora] = await db
+        .select()
+        .from(bitacoras)
+        .where(
+          and(
+            eq(bitacoras.fecha, new Date(fecha)),
+            eq(bitacoras.presion_ar, presion_ar),
+            eq(bitacoras.glucosa, glucosa.toString()),
+            eq(bitacoras.id_pac, id_pac)
+          )
+        )
+        .orderBy(desc(bitacoras.id))
+        .limit(1);
+      
+      console.log('Bitácora encontrada:', bitacora);
+      return bitacora;
+    } catch (error) {
+      console.error('Error en service al crear bitácora:', error);
+      throw error;
+    }
+  }
+
+  async delete(id: number) {
+    const { eq } = await import('drizzle-orm');
+    const [bitacora] = await db.select().from(bitacoras).where(eq(bitacoras.id, id));
+    
+    if (!bitacora) {
+      throw new NotFoundException('Bitácora no encontrada');
+    }
+    
+    await db.delete(bitacoras).where(eq(bitacoras.id, id));
+    return { deleted: true, id };
   }
 }

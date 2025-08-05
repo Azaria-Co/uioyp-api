@@ -9,4 +9,9 @@ export class PacienteController {
   findOne(@Param('id') id: number) {
     return this.pacienteService.findById(id);
   }
+
+  @Get('by-usuario/:id_us')
+  findByUsuario(@Param('id_us') id_us: number) {
+    return this.pacienteService.findByUsuario(id_us);
+  }
 }

@@ -4,11 +4,13 @@ import { EspecialistaModule } from './modules/especialista/especialista.module.j
 import { PacienteModule } from './modules/paciente/paciente.module.js';
 import { PostModule } from './modules/post/post.module.js';
 import { ReaccionModule } from './modules/reaccion/reaccion.module.js';
+import { ProgresoModule } from './modules/progreso/progreso.module.js';
+import { BitacoraModule } from './modules/bitacora/bitacora.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 @Module({
-  imports: [UsuarioModule, EspecialistaModule, PacienteModule, PostModule, ReaccionModule],
+  imports: [UsuarioModule, EspecialistaModule, PacienteModule, PostModule, ReaccionModule, ProgresoModule, BitacoraModule],
   controllers: [AppController],
   providers: [AppService],
 })
