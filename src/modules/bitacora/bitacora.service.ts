@@ -1,3 +1,4 @@
+// src/modules/bitacora/bitacora.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { bitacoras, pacientes, usuarios } from '../../db/schema.js';
@@ -83,7 +84,6 @@ export class BitacoraService {
 
   async create(fecha: string, presion_ar: string, glucosa: number, id_pac: number) {
     try {
-      console.log('Creando bitácora con datos:', { fecha, presion_ar, glucosa, id_pac });
       
       await db.insert(bitacoras).values({
         fecha: new Date(fecha),
@@ -92,7 +92,6 @@ export class BitacoraService {
         id_pac,
       });
       
-      console.log('Bitácora insertada en BD, buscando registro creado...');
       
       // Obtener la bitácora recién creada usando los valores insertados
       const { eq, and, desc } = await import('drizzle-orm');
@@ -110,7 +109,6 @@ export class BitacoraService {
         .orderBy(desc(bitacoras.id))
         .limit(1);
       
-      console.log('Bitácora encontrada:', bitacora);
       return bitacora;
     } catch (error) {
       console.error('Error en service al crear bitácora:', error);

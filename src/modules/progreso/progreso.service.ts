@@ -1,3 +1,4 @@
+// src/modules/progreso/progreso.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { progresos, pacientes, usuarios } from '../../db/schema.js';

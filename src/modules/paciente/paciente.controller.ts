@@ -14,4 +14,10 @@ export class PacienteController {
   findByUsuario(@Param('id_us') id_us: number) {
     return this.pacienteService.findByUsuario(id_us);
   }
+
+  @Get('by-especialista/:id_esp')
+  findByEspecialista(@Param('id_esp') id_esp: number) {
+    // Simplemente retorna todos los pacientes ya que cualquier especialista puede gestionarlos
+    return this.pacienteService.findAll();
+  }
 }

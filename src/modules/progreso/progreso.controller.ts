@@ -1,3 +1,4 @@
+// src/modules/progreso/progreso.controller.ts
 import { Controller, Get, Post, Delete, Param, Body, Query } from '@nestjs/common';
 import { ProgresoService } from './progreso.service.js';
 
