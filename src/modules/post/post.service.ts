@@ -42,11 +42,22 @@ export class PostService {
       id_esp: data.id_esp,
     });
     const insertId = result.insertId || (result[0] && result[0].insertId);
-    // Insertar multimedia asociada
+    // Insertar multimedia asociada (temporalmente comentado hasta migrar la BD)
     if (data.multimedia && data.multimedia.length > 0) {
+      console.log('Multimedia pendiente de implementar tras migración de BD:', data.multimedia);
+      // TODO: Implementar después de migrar tabla multimedia
+      /*
       for (const tipo of data.multimedia) {
-        await db.insert(multimedia).values({ tipo, id_post: insertId });
+        await db.insert(multimedia).values({ 
+          filename: tipo, // Temporal
+          original_name: tipo,
+          file_path: `/uploads/${tipo}`,
+          file_size: 0,
+          mime_type: 'image/jpeg',
+          id_post: insertId 
+        });
       }
+      */
     }
     // Devolver el post creado
     const { eq } = await import('drizzle-orm');

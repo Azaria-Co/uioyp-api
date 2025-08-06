@@ -6,11 +6,21 @@ import { PostModule } from './modules/post/post.module.js';
 import { ReaccionModule } from './modules/reaccion/reaccion.module.js';
 import { ProgresoModule } from './modules/progreso/progreso.module.js';
 import { BitacoraModule } from './modules/bitacora/bitacora.module.js';
+import { MultimediaModule } from './modules/multimedia/multimedia.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 @Module({
-  imports: [UsuarioModule, EspecialistaModule, PacienteModule, PostModule, ReaccionModule, ProgresoModule, BitacoraModule],
+  imports: [
+    UsuarioModule, 
+    EspecialistaModule, 
+    PacienteModule, 
+    PostModule, 
+    ReaccionModule, 
+    ProgresoModule, 
+    BitacoraModule,
+    MultimediaModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

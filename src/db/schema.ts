@@ -46,7 +46,11 @@ export const posts = mysqlTable("post", {
 // ─────────── Multimedia ───────────
 export const multimedia = mysqlTable("multimedia", {
   id: int("id").primaryKey().autoincrement(),
-  tipo: text("tipo"), // Changed from blob to text
+  filename: varchar("filename", { length: 255 }), // Nombre del archivo
+  original_name: varchar("original_name", { length: 255 }), // Nombre original
+  file_path: varchar("file_path", { length: 500 }), // Ruta completa del archivo
+  file_size: int("file_size"), // Tamaño en bytes
+  mime_type: varchar("mime_type", { length: 100 }), // image/jpeg, image/png, etc.
   id_post: int("id_post").references(() => posts.id),
 });
 
