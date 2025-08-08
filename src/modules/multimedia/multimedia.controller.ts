@@ -87,4 +87,46 @@ export class MultimediaController {
   async getPostMedia(@Param('postId') postId: number) {
     return this.multimediaService.findByPostId(postId);
   }
+
+  @Post('advanced')
+  async createAdvancedMultimedia(@Body() body: {
+    tipo: 'video' | 'link';
+    id_post: number;
+    url: string;
+    titulo?: string;
+    descripcion?: string;
+  }) {
+    if (!body.tipo || !body.id_post || !body.url) {
+      throw new BadRequestException('Tipo, id_post y URL son obligatorios');
+    }
+
+    // Validaciones específicas por tipo
+    if (body.tipo === 'video') {
+      // Validar que sea una URL de YouTube
+      const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+      if (!youtubeRegex.test(body.url)) {
+        throw new BadRequestException('URL de YouTube inválida');
+      }
+    } else if (body.tipo === 'link') {
+      // Validar que sea una URL válida
+      try {
+        new URL(body.url);
+      } catch {
+        throw new BadRequestException('URL inválida');
+      }
+    }
+
+    const savedMultimedia = await this.multimediaService.saveMultimediaInfo({
+      tipo: body.tipo,
+      id_post: body.id_post,
+      url: body.url,
+      titulo: body.titulo,
+      descripcion: body.descripcion,
+    });
+
+    return {
+      message: 'Multimedia creado exitosamente',
+      multimedia: savedMultimedia,
+    };
+  }
 }

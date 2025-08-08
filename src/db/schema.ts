@@ -40,17 +40,22 @@ export const posts = mysqlTable("post", {
   titulo: varchar("titulo", { length: 100 }),
   fecha: date("fecha"),
   texto: text("texto"),
+  tipo: varchar("tipo", { length: 20 }).default('normal'), // 'normal' | 'investigacion'
   id_esp: int("id_esp").references(() => especialistas.id),
 });
 
 // ─────────── Multimedia ───────────
 export const multimedia = mysqlTable("multimedia", {
   id: int("id").primaryKey().autoincrement(),
-  filename: varchar("filename", { length: 255 }), // Nombre del archivo
+  tipo: varchar("tipo", { length: 50 }).default('image'), // 'image', 'video', 'link'
+  filename: varchar("filename", { length: 255 }), // Nombre del archivo (para imágenes)
   original_name: varchar("original_name", { length: 255 }), // Nombre original
   file_path: varchar("file_path", { length: 500 }), // Ruta completa del archivo
   file_size: int("file_size"), // Tamaño en bytes
-  mime_type: varchar("mime_type", { length: 100 }), // image/jpeg, image/png, etc.
+  mime_type: varchar("mime_type", { length: 100 }), // image/jpeg, video/youtube, text/url, etc.
+  url: varchar("url", { length: 1000 }), // URL para videos de YouTube o enlaces
+  titulo: varchar("titulo", { length: 255 }), // Título para videos/enlaces
+  descripcion: text("descripcion"), // Descripción para videos/enlaces
   id_post: int("id_post").references(() => posts.id),
 });
 
@@ -75,7 +80,8 @@ export const bitacoras = mysqlTable("bitacora", {
   fecha: date("fecha"),
   presion_ar: varchar("presion_ar", { length: 255 }),
   glucosa: decimal("glucosa", { precision: 10, scale: 2 }),
-  comidas: text("comidas"), // Nuevo campo
-  medicamentos: text("medicamentos"), // Nuevo campo
   id_pac: int("id_pac").references(() => pacientes.id),
+  comidas: text("comidas"), // Movido al final
+  medicamentos: text("medicamentos"), // Movido al final
 });
+

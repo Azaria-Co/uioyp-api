@@ -14,11 +14,12 @@ export class PostController {
 
   // Crear post (requiere id_esp, multimedia opcional)
   @Post()
-  async create(@Body() body: { titulo: string; texto: string; id_esp: number; multimedia?: string[] }) {
+  async create(@Body() body: { titulo: string; texto: string; tipo?: string; id_esp: number; multimedia?: string[] }) {
     // id_esp debe venir del token en producción
     return this.postService.createPost({
       titulo: body.titulo,
       texto: body.texto,
+      tipo: body.tipo || 'normal', // Default a 'normal' si no se especifica
       id_esp: body.id_esp,
       multimedia: body.multimedia || [],
     });
@@ -34,5 +35,17 @@ export class PostController {
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.postService.findById(id);
+  }
+
+  // Obtener investigaciones de un especialista específico
+  @Get('investigaciones/especialista/:id_esp')
+  getInvestigacionesByEspecialista(@Param('id_esp') id_esp: number) {
+    return this.postService.getInvestigacionesByEspecialista(Number(id_esp));
+  }
+
+  // Obtener participantes (usuarios que dieron "me interesa") de una investigación
+  @Get(':id/participantes')
+  getParticipantesInvestigacion(@Param('id') id: number) {
+    return this.postService.getParticipantesInvestigacion(Number(id));
   }
 }

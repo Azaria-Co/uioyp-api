@@ -1,7 +1,7 @@
 // src/modules/post/post.service.ts
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
-import { posts, multimedia, especialistas, usuarios } from '../../db/schema.js';
+import { posts, multimedia, especialistas, usuarios, reacciones, pacientes } from '../../db/schema.js';
 import { sql } from 'drizzle-orm';
 
 
@@ -16,6 +16,7 @@ export class PostService {
         titulo: posts.titulo,
         fecha: posts.fecha,
         texto: posts.texto,
+        tipo: posts.tipo, // Agregar campo tipo
         id_esp: posts.id_esp,
         especialista: {
           id: especialistas.id,
@@ -33,11 +34,12 @@ export class PostService {
     
     return result;
   }
-  async createPost(data: { titulo: string; texto: string; id_esp: number; multimedia: string[] }) {
+  async createPost(data: { titulo: string; texto: string; tipo?: string; id_esp: number; multimedia: string[] }) {
     // Insertar el post con fecha actual
     const result: any = await db.insert(posts).values({
       titulo: data.titulo,
       texto: data.texto,
+      tipo: data.tipo || 'normal', // Default a 'normal'
       fecha: new Date(),
       id_esp: data.id_esp,
     });
@@ -82,5 +84,66 @@ export class PostService {
     const { eq } = await import('drizzle-orm');
     const result = await db.select().from(posts).where(eq(posts.id, id));
     return result[0] ?? null;
+  }
+
+  // Obtener investigaciones de un especialista específico
+  async getInvestigacionesByEspecialista(id_esp: number) {
+    const { eq, and } = await import('drizzle-orm');
+
+    const result = await db
+      .select({
+        id: posts.id,
+        titulo: posts.titulo,
+        fecha: posts.fecha,
+        texto: posts.texto,
+        tipo: posts.tipo,
+        id_esp: posts.id_esp,
+        participantes: sql<number>`(
+          SELECT COUNT(*) FROM reaccion WHERE reaccion.id_post = ${posts.id}
+        )`.as('participantes'),
+      })
+      .from(posts)
+      .where(
+        and(
+          eq(posts.id_esp, id_esp),
+          eq(posts.tipo, 'investigacion')
+        )
+      )
+      .orderBy(posts.fecha);
+
+    return result;
+  }
+
+  // Obtener participantes (usuarios que dieron "me interesa") de una investigación
+  async getParticipantesInvestigacion(id_post: number) {
+    const { eq } = await import('drizzle-orm');
+
+    // Primero verificar que el post existe y es de tipo investigación
+    const [post] = await db.select().from(posts).where(eq(posts.id, id_post));
+    if (!post) throw new NotFoundException('Post no encontrado');
+    if (post.tipo !== 'investigacion') {
+      throw new ForbiddenException('Solo se pueden ver participantes de investigaciones');
+    }
+
+    // Obtener usuarios que reaccionaron al post
+    const result = await db
+      .select({
+        id: reacciones.id_us,
+        nombre: usuarios.nombre_us,
+        telefono: sql<string>`
+          CASE 
+            WHEN ${pacientes.telefono} IS NOT NULL THEN ${pacientes.telefono}
+            ELSE 'No disponible'
+          END
+        `.as('telefono'),
+        fecha_inscripcion: reacciones.fecha,
+      })
+      .from(reacciones)
+      .leftJoin(usuarios, eq(reacciones.id_us, usuarios.id))
+      .leftJoin(pacientes, eq(pacientes.id_us, usuarios.id))
+      .where(eq(reacciones.id_post, id_post))
+      .orderBy(reacciones.fecha);
+
+    return result;
   }
 }
