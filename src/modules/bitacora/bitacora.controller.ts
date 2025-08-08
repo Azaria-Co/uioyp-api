@@ -1,3 +1,4 @@
+// src/modules/bitacora/bitacora.controller.ts
 import { Controller, Get, Post, Delete, Param, Body, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { BitacoraService } from './bitacora.service.js';
 
@@ -19,7 +20,7 @@ export class BitacoraController {
   }
 
   @Post()
-  async create(@Body() body: { fecha: string; presion_ar: string; glucosa: number; id_pac: number }) {
+  async create(@Body() body: { fecha: string; presion_ar: string; glucosa: number; id_pac: number; comidas?: string; medicamentos?: string }) {
     try {
       console.log('Recibiendo datos para crear bitácora:', body);
       
@@ -27,7 +28,14 @@ export class BitacoraController {
         throw new HttpException('Faltan datos requeridos', HttpStatus.BAD_REQUEST);
       }
 
-      const result = await this.bitacoraService.create(body.fecha, body.presion_ar, body.glucosa, body.id_pac);
+      const result = await this.bitacoraService.create(
+        body.fecha,
+        body.presion_ar,
+        body.glucosa,
+        body.id_pac,
+        body.comidas,
+        body.medicamentos
+      );
       console.log('Bitácora creada exitosamente:', result);
       return result;
     } catch (error) {

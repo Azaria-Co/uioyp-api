@@ -75,5 +75,7 @@ export const bitacoras = mysqlTable("bitacora", {
   fecha: date("fecha"),
   presion_ar: varchar("presion_ar", { length: 255 }),
   glucosa: decimal("glucosa", { precision: 10, scale: 2 }),
+  comidas: text("comidas"), // Nuevo campo
+  medicamentos: text("medicamentos"), // Nuevo campo
   id_pac: int("id_pac").references(() => pacientes.id),
 });

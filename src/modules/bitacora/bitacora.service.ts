@@ -13,6 +13,8 @@ export class BitacoraService {
         fecha: bitacoras.fecha,
         presion_ar: bitacoras.presion_ar,
         glucosa: bitacoras.glucosa,
+        comidas: bitacoras.comidas, // Nuevo campo
+        medicamentos: bitacoras.medicamentos, // Nuevo campo
         id_pac: bitacoras.id_pac,
         paciente: {
           id: pacientes.id,
@@ -38,6 +40,8 @@ export class BitacoraService {
         fecha: bitacoras.fecha,
         presion_ar: bitacoras.presion_ar,
         glucosa: bitacoras.glucosa,
+        comidas: bitacoras.comidas, // Nuevo campo
+        medicamentos: bitacoras.medicamentos, // Nuevo campo
         id_pac: bitacoras.id_pac,
         paciente: {
           id: pacientes.id,
@@ -64,6 +68,8 @@ export class BitacoraService {
         fecha: bitacoras.fecha,
         presion_ar: bitacoras.presion_ar,
         glucosa: bitacoras.glucosa,
+        comidas: bitacoras.comidas, // Nuevo campo
+        medicamentos: bitacoras.medicamentos, // Nuevo campo
         id_pac: bitacoras.id_pac,
         paciente: {
           id: pacientes.id,
@@ -82,33 +88,36 @@ export class BitacoraService {
     return result;
   }
 
-  async create(fecha: string, presion_ar: string, glucosa: number, id_pac: number) {
+  async create(fecha: string, presion_ar: string, glucosa: number, id_pac: number, comidas?: string, medicamentos?: string) {
     try {
-      
       await db.insert(bitacoras).values({
         fecha: new Date(fecha),
         presion_ar,
         glucosa: glucosa.toString(), // Convertir a string para decimal
+        comidas,
+        medicamentos,
         id_pac,
       });
-      
-      
       // Obtener la bitácora recién creada usando los valores insertados
       const { eq, and, desc } = await import('drizzle-orm');
+      const whereClauses = [
+        eq(bitacoras.fecha, new Date(fecha)),
+        eq(bitacoras.presion_ar, presion_ar),
+        eq(bitacoras.glucosa, glucosa.toString()),
+        eq(bitacoras.id_pac, id_pac)
+      ];
+      if (typeof comidas === 'string') {
+        whereClauses.push(eq(bitacoras.comidas, comidas));
+      }
+      if (typeof medicamentos === 'string') {
+        whereClauses.push(eq(bitacoras.medicamentos, medicamentos));
+      }
       const [bitacora] = await db
         .select()
         .from(bitacoras)
-        .where(
-          and(
-            eq(bitacoras.fecha, new Date(fecha)),
-            eq(bitacoras.presion_ar, presion_ar),
-            eq(bitacoras.glucosa, glucosa.toString()),
-            eq(bitacoras.id_pac, id_pac)
-          )
-        )
+        .where(and(...whereClauses))
         .orderBy(desc(bitacoras.id))
         .limit(1);
-      
       return bitacora;
     } catch (error) {
       console.error('Error en service al crear bitácora:', error);
