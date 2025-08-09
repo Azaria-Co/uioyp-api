@@ -48,4 +48,16 @@ export class PostController {
   getParticipantesInvestigacion(@Param('id') id: number) {
     return this.postService.getParticipantesInvestigacion(Number(id));
   }
+
+  // Top posts con más likes (general)
+  @Get('stats/top-liked')
+  getTopLiked() {
+    return this.postService.getTopLiked(10);
+  }
+
+  // Top posts con más likes por especialista
+  @Get('stats/top-liked/:id_esp')
+  getTopLikedByEspecialista(@Param('id_esp') id_esp: number) {
+    return this.postService.getTopLikedByEspecialista(Number(id_esp), 10);
+  }
 }

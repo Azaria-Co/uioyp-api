@@ -146,4 +146,55 @@ export class PostService {
 
     return result;
   }
+
+  // Top posts con más likes (general)
+  async getTopLiked(limit: number = 10) {
+    const { eq } = await import('drizzle-orm');
+
+    const likeCount = (postId: any) => sql<number>`(
+      SELECT COUNT(*) FROM reaccion WHERE reaccion.id_post = ${postId}
+    )`;
+
+    const result = await db
+      .select({
+        id: posts.id,
+        titulo: posts.titulo,
+        fecha: posts.fecha,
+        texto: posts.texto,
+        tipo: posts.tipo,
+        id_esp: posts.id_esp,
+        likes: likeCount(posts.id).as('likes'),
+      })
+      .from(posts)
+      .orderBy(sql`(${likeCount(posts.id)}) DESC`)
+      .limit(limit);
+
+    return result;
+  }
+
+  // Top posts con más likes por especialista
+  async getTopLikedByEspecialista(id_esp: number, limit: number = 10) {
+    const { eq, and } = await import('drizzle-orm');
+
+    const likeCount = (postId: any) => sql<number>`(
+      SELECT COUNT(*) FROM reaccion WHERE reaccion.id_post = ${postId}
+    )`;
+
+    const result = await db
+      .select({
+        id: posts.id,
+        titulo: posts.titulo,
+        fecha: posts.fecha,
+        texto: posts.texto,
+        tipo: posts.tipo,
+        id_esp: posts.id_esp,
+        likes: likeCount(posts.id).as('likes'),
+      })
+      .from(posts)
+      .where(eq(posts.id_esp, id_esp))
+      .orderBy(sql`(${likeCount(posts.id)}) DESC`)
+      .limit(limit);
+
+    return result;
+  }
 }
