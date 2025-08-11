@@ -7,6 +7,7 @@ import { ReaccionModule } from './modules/reaccion/reaccion.module.js';
 import { ProgresoModule } from './modules/progreso/progreso.module.js';
 import { BitacoraModule } from './modules/bitacora/bitacora.module.js';
 import { MultimediaModule } from './modules/multimedia/multimedia.module.js';
+import { FaqModule } from './modules/faq/faq.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -19,7 +20,8 @@ import { AppService } from './app.service.js';
     ReaccionModule, 
     ProgresoModule, 
     BitacoraModule,
-    MultimediaModule
+    MultimediaModule,
+    FaqModule
   ],
   controllers: [AppController],
   providers: [AppService],

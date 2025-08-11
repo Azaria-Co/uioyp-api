@@ -85,3 +85,11 @@ export const bitacoras = mysqlTable("bitacora", {
   medicamentos: text("medicamentos"), // Movido al final
 });
 
+  // ─────────── Preguntas Frecuentes (FAQ) ───────────
+  export const faqs = mysqlTable("faq", {
+    id: int("id").primaryKey().autoincrement(),
+    pregunta: text("pregunta"),
+    respuesta: text("respuesta"),
+    id_esp: int("id_esp").references(() => especialistas.id),
+  });
+
