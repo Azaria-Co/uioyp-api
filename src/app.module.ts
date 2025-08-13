@@ -8,6 +8,7 @@ import { ProgresoModule } from './modules/progreso/progreso.module.js';
 import { BitacoraModule } from './modules/bitacora/bitacora.module.js';
 import { MultimediaModule } from './modules/multimedia/multimedia.module.js';
 import { FaqModule } from './modules/faq/faq.module.js';
+import { PushModule } from './modules/push/push.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -21,7 +22,8 @@ import { AppService } from './app.service.js';
     ProgresoModule, 
     BitacoraModule,
     MultimediaModule,
-    FaqModule
+    FaqModule,
+    PushModule
   ],
   controllers: [AppController],
   providers: [AppService],

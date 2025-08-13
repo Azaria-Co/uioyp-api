@@ -93,3 +93,28 @@ export const bitacoras = mysqlTable("bitacora", {
     id_esp: int("id_esp").references(() => especialistas.id),
   });
 
+// ─────────── Push tokens ───────────
+export const pushTokens = mysqlTable("push_token", {
+  id: int("id").primaryKey().autoincrement(),
+  token: varchar("token", { length: 255 }),
+  platform: varchar("platform", { length: 50 }),
+  id_us: int("id_us").references(() => usuarios.id),
+});
+
+// ─────────── Settings (clave-valor) ───────────
+export const settings = mysqlTable("setting", {
+  key: varchar("key", { length: 100 }).primaryKey(),
+  value: varchar("value", { length: 255 }),
+});
+
+// ─────────── Patient reminders (push) ───────────
+export const patientReminders = mysqlTable("patient_reminder", {
+  id: int("id").primaryKey().autoincrement(),
+  id_pac: int("id_pac").references(() => pacientes.id),
+  hour: int("hour"),
+  minute: int("minute"),
+  last_sent: date("last_sent"),
+  created_by: int("created_by").references(() => especialistas.id),
+  active: int("active"), // 1 activo, 0 inactivo
+});
+
