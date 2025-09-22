@@ -9,6 +9,7 @@ interface FileInfo {
   file_size: number;
   mime_type: string;
   id_post: number | null;
+  contenido_blob?: Buffer | null;
 }
 
 interface MultimediaInfo {
@@ -40,7 +41,7 @@ export class MultimediaService {
       url: fileInfo.file_path, // Usar file_path como url
       titulo: fileInfo.original_name,
       descripcion: fileInfo.filename,
-      contenido_blob: null, // Si tienes el buffer, ponlo aquí
+      contenido_blob: fileInfo.contenido_blob ?? null,
       id_post: fileInfo.id_post,
     });
     // Consultar el registro recién creado por campos reales y no nulos

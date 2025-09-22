@@ -56,6 +56,15 @@ export class MultimediaController {
       throw new BadRequestException('No se proporcionó ningún archivo');
     }
 
+    // Leer el buffer del archivo subido
+    const fs = await import('fs/promises');
+    let buffer: Buffer | null = null;
+    try {
+      buffer = await fs.readFile(file.path);
+    } catch (err) {
+      buffer = null;
+    }
+
     const savedFile = await this.multimediaService.saveFileInfo({
       filename: file.filename,
       original_name: file.originalname,
@@ -63,12 +72,13 @@ export class MultimediaController {
       file_size: file.size,
       mime_type: file.mimetype,
       id_post: id_post ? parseInt(id_post) : null,
+      contenido_blob: buffer,
     });
 
     return {
       message: 'Archivo subido exitosamente',
       file: savedFile,
-      url: `/multimedia/file/${file.filename}`, // URL para acceder al archivo
+      url: `/multimedia/file/${file.filename}`,
     };
   }
 
