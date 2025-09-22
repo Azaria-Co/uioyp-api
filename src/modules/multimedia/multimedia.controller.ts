@@ -85,12 +85,23 @@ export class MultimediaController {
   @Get('file/:filename')
   async serveFile(@Param('filename') filename: string, @Res() res: Response) {
     const filePath = join(process.cwd(), 'uploads', filename);
-    
-    if (!existsSync(filePath)) {
+    const fs = await import('fs/promises');
+    if (existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+    // Si no existe en disco, buscar en la base por descripcion
+    const multimediaRow = await this.multimediaService.findByDescripcion(filename);
+    if (!multimediaRow || !multimediaRow.contenido_blob) {
       return res.status(404).json({ message: 'Archivo no encontrado' });
     }
-
-    return res.sendFile(filePath);
+    // Determinar el mime type
+    const mimeType = (multimediaRow as any).mime_type || 'image/jpeg';
+    const blobBuffer = Buffer.isBuffer(multimediaRow.contenido_blob)
+      ? multimediaRow.contenido_blob as Buffer
+      : Buffer.from(multimediaRow.contenido_blob as any);
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', blobBuffer.length);
+    return res.send(blobBuffer);
   }
 
   @Get('post/:postId')
