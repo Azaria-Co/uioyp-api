@@ -1,1 +1,0 @@
-ALTER TABLE `post` ADD `tipo` varchar(20) DEFAULT 'normal';

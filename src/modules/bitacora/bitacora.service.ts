@@ -90,10 +90,11 @@ export class BitacoraService {
 
   async create(fecha: string, presion_ar: string, glucosa: number, id_pac: number, comidas?: string, medicamentos?: string) {
     try {
+      const fechaStr = new Date(fecha).toISOString();
       await db.insert(bitacoras).values({
-        fecha: new Date(fecha),
+        fecha: fechaStr,
         presion_ar,
-        glucosa: glucosa.toString(), // Convertir a string para decimal
+        glucosa: glucosa.toString(),
         comidas,
         medicamentos,
         id_pac,
@@ -101,7 +102,7 @@ export class BitacoraService {
       // Obtener la bitácora recién creada usando los valores insertados
       const { eq, and, desc } = await import('drizzle-orm');
       const whereClauses = [
-        eq(bitacoras.fecha, new Date(fecha)),
+        eq(bitacoras.fecha, fechaStr),
         eq(bitacoras.presion_ar, presion_ar),
         eq(bitacoras.glucosa, glucosa.toString()),
         eq(bitacoras.id_pac, id_pac)

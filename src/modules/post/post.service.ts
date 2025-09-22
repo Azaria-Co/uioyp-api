@@ -39,8 +39,8 @@ export class PostService {
     const result: any = await db.insert(posts).values({
       titulo: data.titulo,
       texto: data.texto,
-      tipo: data.tipo || 'normal', // Default a 'normal'
-      fecha: new Date(),
+      tipo: data.tipo || 'normal',
+      fecha: new Date().toISOString(),
       id_esp: data.id_esp,
     });
     const insertId = result.insertId || (result[0] && result[0].insertId);

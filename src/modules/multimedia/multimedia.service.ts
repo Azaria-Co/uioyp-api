@@ -36,12 +36,11 @@ export class MultimediaService {
 
   async saveFileInfo(fileInfo: FileInfo) {
     const result: any = await db.insert(multimedia).values({
-      tipo: 'image', // Por compatibilidad hacia atrás
-      filename: fileInfo.filename,
-      original_name: fileInfo.original_name,
-      file_path: fileInfo.file_path,
-      file_size: fileInfo.file_size,
-      mime_type: fileInfo.mime_type,
+      tipo: 'image',
+      url: fileInfo.file_path, // Usar file_path como url
+      titulo: fileInfo.original_name,
+      descripcion: fileInfo.filename,
+      contenido_blob: null, // Si tienes el buffer, ponlo aquí
       id_post: fileInfo.id_post,
     });
 

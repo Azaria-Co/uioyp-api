@@ -18,7 +18,7 @@ export class ReaccionService {
     const result = await db.insert(reacciones).values({
       id_us,
       id_post,
-      fecha: new Date(),
+      fecha: new Date().toISOString(),
     });
     return result;
   }

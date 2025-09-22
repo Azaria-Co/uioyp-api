@@ -80,12 +80,12 @@ export class ProgresoService {
   }
 
   async create(fecha: string, etapa: string, id_pac: number) {
+    const fechaStr = new Date(fecha).toISOString();
     await db.insert(progresos).values({
-      fecha: new Date(fecha),
+      fecha: fechaStr,
       etapa,
       id_pac,
     });
-    
     // Obtener el progreso recién creado usando los valores insertados
     const { eq, and, desc } = await import('drizzle-orm');
     const [progreso] = await db
@@ -93,14 +93,13 @@ export class ProgresoService {
       .from(progresos)
       .where(
         and(
-          eq(progresos.fecha, new Date(fecha)),
+          eq(progresos.fecha, fechaStr),
           eq(progresos.etapa, etapa),
           eq(progresos.id_pac, id_pac)
         )
       )
       .orderBy(desc(progresos.id))
       .limit(1);
-    
     return progreso;
   }
 
