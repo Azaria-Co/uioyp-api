@@ -36,16 +36,28 @@ export class PostService {
   }
   async createPost(data: { titulo: string; texto: string; tipo?: string; id_esp: number; multimedia: string[] }) {
     // Insertar el post con fecha actual
-    const result: any = await db.insert(posts).values({
+    const fechaStr = new Date().toISOString();
+    await db.insert(posts).values({
       titulo: data.titulo,
       texto: data.texto,
       tipo: data.tipo || 'normal',
-      fecha: new Date().toISOString(),
+      fecha: fechaStr,
       id_esp: data.id_esp,
     });
-    const insertId = result.insertId || (result[0] && result[0].insertId);
+    // Consultar el post recién creado por campos únicos
+    const { eq, and, desc } = await import('drizzle-orm');
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(and(
+        eq(posts.titulo, data.titulo),
+        eq(posts.fecha, fechaStr),
+        eq(posts.id_esp, data.id_esp)
+      ))
+      .orderBy(desc(posts.id))
+      .limit(1);
     // Insertar multimedia asociada (temporalmente comentado hasta migrar la BD)
-    if (data.multimedia && data.multimedia.length > 0) {
+    if (data.multimedia && data.multimedia.length > 0 && post) {
       console.log('Multimedia pendiente de implementar tras migración de BD:', data.multimedia);
       // TODO: Implementar después de migrar tabla multimedia
       /*
@@ -56,14 +68,12 @@ export class PostService {
           file_path: `/uploads/${tipo}`,
           file_size: 0,
           mime_type: 'image/jpeg',
-          id_post: insertId 
+          id_post: post.id 
         });
       }
       */
     }
     // Devolver el post creado
-    const { eq } = await import('drizzle-orm');
-    const [post] = await db.select().from(posts).where(eq(posts.id, insertId));
     return post;
   }
 

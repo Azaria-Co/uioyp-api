@@ -25,14 +25,23 @@ export class FaqService {
   }
 
   async create(data: { pregunta: string; respuesta: string; id_esp: number }) {
-    const result: any = await db.insert(faqs).values({
+    await db.insert(faqs).values({
       pregunta: data.pregunta,
       respuesta: data.respuesta,
       id_esp: data.id_esp,
     });
-    const insertId = result.insertId || (result[0] && result[0].insertId);
-    const { eq } = await import('drizzle-orm');
-    const [row] = await db.select().from(faqs).where(eq(faqs.id, insertId));
+    // Consultar el FAQ recién creado por campos únicos
+    const { eq, and, desc } = await import('drizzle-orm');
+    const [row] = await db
+      .select()
+      .from(faqs)
+      .where(and(
+        eq(faqs.pregunta, data.pregunta),
+        eq(faqs.respuesta, data.respuesta),
+        eq(faqs.id_esp, data.id_esp)
+      ))
+      .orderBy(desc(faqs.id))
+      .limit(1);
     return row;
   }
 

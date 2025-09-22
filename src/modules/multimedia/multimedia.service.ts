@@ -35,7 +35,7 @@ export class MultimediaService {
   }
 
   async saveFileInfo(fileInfo: FileInfo) {
-    const result: any = await db.insert(multimedia).values({
+    await db.insert(multimedia).values({
       tipo: 'image',
       url: fileInfo.file_path, // Usar file_path como url
       titulo: fileInfo.original_name,
@@ -43,12 +43,23 @@ export class MultimediaService {
       contenido_blob: null, // Si tienes el buffer, ponlo aquí
       id_post: fileInfo.id_post,
     });
-
-    const insertId = result.insertId || (result[0] && result[0].insertId);
-    
-    // Devolver el registro completo
-    const { eq } = await import('drizzle-orm');
-    const [savedFile] = await db.select().from(multimedia).where(eq(multimedia.id, insertId));
+    // Consultar el registro recién creado por campos reales y no nulos
+    const { eq, and, desc } = await import('drizzle-orm');
+    const whereClauses = [
+      eq(multimedia.tipo, 'image'),
+      eq(multimedia.url, fileInfo.file_path),
+      eq(multimedia.titulo, fileInfo.original_name),
+      eq(multimedia.descripcion, fileInfo.filename)
+    ];
+    if (typeof fileInfo.id_post === 'number') {
+      whereClauses.push(eq(multimedia.id_post, fileInfo.id_post));
+    }
+    const [savedFile] = await db
+      .select()
+      .from(multimedia)
+      .where(and(...whereClauses))
+      .orderBy(desc(multimedia.id))
+      .limit(1);
     return savedFile;
   }
 
@@ -58,31 +69,39 @@ export class MultimediaService {
       id_post: multimediaInfo.id_post,
     };
 
-    // Agregar campos según el tipo
+    // Agregar campos según el tipo y esquema real
     if (multimediaInfo.tipo === 'image') {
-      values.filename = multimediaInfo.filename;
-      values.original_name = multimediaInfo.original_name;
-      values.file_path = multimediaInfo.file_path;
-      values.file_size = multimediaInfo.file_size;
-      values.mime_type = multimediaInfo.mime_type || 'image/jpeg';
-    } else if (multimediaInfo.tipo === 'video') {
+      values.url = multimediaInfo.file_path;
+      values.titulo = multimediaInfo.original_name;
+      values.descripcion = multimediaInfo.filename;
+    } else if (multimediaInfo.tipo === 'video' || multimediaInfo.tipo === 'link') {
       values.url = multimediaInfo.url;
       values.titulo = multimediaInfo.titulo;
       values.descripcion = multimediaInfo.descripcion;
-      values.mime_type = 'video/youtube';
-    } else if (multimediaInfo.tipo === 'link') {
-      values.url = multimediaInfo.url;
-      values.titulo = multimediaInfo.titulo;
-      values.descripcion = multimediaInfo.descripcion;
-      values.mime_type = 'text/url';
     }
 
-    const result: any = await db.insert(multimedia).values(values);
-    const insertId = result.insertId || (result[0] && result[0].insertId);
-    
-    // Devolver el registro completo
-    const { eq } = await import('drizzle-orm');
-    const [savedFile] = await db.select().from(multimedia).where(eq(multimedia.id, insertId));
+    await db.insert(multimedia).values(values);
+    // Consultar el registro recién creado por campos reales y no nulos
+    const { eq, and, desc } = await import('drizzle-orm');
+    const whereClauses = [
+      eq(multimedia.tipo, multimediaInfo.tipo),
+      eq(multimedia.id_post, multimediaInfo.id_post)
+    ];
+    if (multimediaInfo.tipo === 'image') {
+      whereClauses.push(eq(multimedia.url, multimediaInfo.file_path ?? ''));
+      whereClauses.push(eq(multimedia.titulo, multimediaInfo.original_name ?? ''));
+      whereClauses.push(eq(multimedia.descripcion, multimediaInfo.filename ?? ''));
+    } else if (multimediaInfo.tipo === 'video' || multimediaInfo.tipo === 'link') {
+      whereClauses.push(eq(multimedia.url, multimediaInfo.url ?? ''));
+      whereClauses.push(eq(multimedia.titulo, multimediaInfo.titulo ?? ''));
+      whereClauses.push(eq(multimedia.descripcion, multimediaInfo.descripcion ?? ''));
+    }
+    const [savedFile] = await db
+      .select()
+      .from(multimedia)
+      .where(and(...whereClauses))
+      .orderBy(desc(multimedia.id))
+      .limit(1);
     return savedFile;
   }
 
