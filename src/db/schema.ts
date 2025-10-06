@@ -1,112 +1,115 @@
 // src/db/schema.ts
 import {
-  sqliteTable,
-  integer,
+  mysqlTable,
+  int,
+  varchar,
   text,
-  blob, // Ahora importado correctamente
-} from "drizzle-orm/sqlite-core";
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 
 // ─────────── Usuarios ───────────
-export const usuarios = sqliteTable("usuario", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  nombre_us: text("nombre_us"),
-  rol: integer("rol").notNull(),
+export const usuarios = mysqlTable("usuario", {
+  id: int("id").primaryKey().autoincrement(),
+  nombre_us: varchar("nombre_us", { length: 255 }),
+  rol: int("rol").notNull(),
 });
 
 // ─────────── Pacientes ───────────
-export const pacientes = sqliteTable("paciente", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const pacientes = mysqlTable("paciente", {
+  id: int("id").primaryKey().autoincrement(),
   masa_muscular: text("masa_muscular"),
-  tipo_sangre: text("tipo_sangre"),
+  tipo_sangre: varchar("tipo_sangre", { length: 10 }),
   enfer_pat: text("enfer_pat"),
-  telefono: text("telefono"),
-  id_us: integer("id_us").references(() => usuarios.id),
+  telefono: varchar("telefono", { length: 20 }),
+  id_us: int("id_us").references(() => usuarios.id),
 });
 
 // ─────────── Especialistas ───────────
-export const especialistas = sqliteTable("especialista", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  estatus: integer("estatus"),
-  area: text("area"),
-  id_us: integer("id_us").references(() => usuarios.id),
+export const especialistas = mysqlTable("especialista", {
+  id: int("id").primaryKey().autoincrement(),
+  estatus: int("estatus"),
+  area: varchar("area", { length: 100 }),
+  id_us: int("id_us").references(() => usuarios.id),
 });
 
 // ─────────── Post ───────────
-export const posts = sqliteTable("post", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  titulo: text("titulo"),
-  fecha: text("fecha"),
+export const posts = mysqlTable("post", {
+  id: int("id").primaryKey().autoincrement(),
+  titulo: varchar("titulo", { length: 255 }),
+  fecha: varchar("fecha", { length: 50 }),
   texto: text("texto"),
-  tipo: text("tipo").default('normal'),
-  id_esp: integer("id_esp").references(() => especialistas.id),
+  tipo: varchar("tipo", { length: 50 }).default('normal'),
+  id_esp: int("id_esp").references(() => especialistas.id),
 });
 
 // ─────────── Multimedia ───────────
-export const multimedia = sqliteTable("multimedia", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  tipo: text("tipo").default('image'),
+export const multimedia = mysqlTable("multimedia", {
+  id: int("id").primaryKey().autoincrement(),
+  tipo: varchar("tipo", { length: 50 }).default('image'),
   url: text("url"),
-  titulo: text("titulo"),
+  titulo: varchar("titulo", { length: 255 }),
   descripcion: text("descripcion"),
-  contenido_blob: blob("contenido_blob"), // La nueva columna BLOB para las imágenes
-  id_post: integer("id_post").references(() => posts.id),
+  contenido_blob: text("contenido_blob"), // La nueva columna BLOB para las imágenes
+  id_post: int("id_post").references(() => posts.id),
 });
 
 // ─────────── Reacción ───────────
-export const reacciones = sqliteTable("reaccion", {
-  id_us: integer("id_us").references(() => usuarios.id),
-  id_post: integer("id_post").references(() => posts.id),
-  fecha: text("fecha"),
-});
+export const reacciones = mysqlTable("reaccion", {
+  id_us: int("id_us").references(() => usuarios.id),
+  id_post: int("id_post").references(() => posts.id),
+  fecha: varchar("fecha", { length: 50 }),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.id_us, table.id_post] }),
+}));
 
 // ─────────── Progreso ───────────
-export const progresos = sqliteTable("progreso", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  fecha: text("fecha"),
-  etapa: text("etapa"),
-  id_pac: integer("id_pac").references(() => pacientes.id),
+export const progresos = mysqlTable("progreso", {
+  id: int("id").primaryKey().autoincrement(),
+  fecha: varchar("fecha", { length: 50 }),
+  etapa: varchar("etapa", { length: 100 }),
+  id_pac: int("id_pac").references(() => pacientes.id),
 });
 
 // ─────────── Bitacora ───────────
-export const bitacoras = sqliteTable("bitacora", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  fecha: text("fecha"),
-  presion_ar: text("presion_ar"),
-  glucosa: text("glucosa"),
-  id_pac: integer("id_pac").references(() => pacientes.id),
+export const bitacoras = mysqlTable("bitacora", {
+  id: int("id").primaryKey().autoincrement(),
+  fecha: varchar("fecha", { length: 50 }),
+  presion_ar: varchar("presion_ar", { length: 20 }),
+  glucosa: varchar("glucosa", { length: 20 }),
+  id_pac: int("id_pac").references(() => pacientes.id),
   comidas: text("comidas"),
   medicamentos: text("medicamentos"),
 });
 
 // ─────────── Preguntas Frecuentes (FAQ) ───────────
-export const faqs = sqliteTable("faq", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const faqs = mysqlTable("faq", {
+  id: int("id").primaryKey().autoincrement(),
   pregunta: text("pregunta"),
   respuesta: text("respuesta"),
-  id_esp: integer("id_esp").references(() => especialistas.id),
+  id_esp: int("id_esp").references(() => especialistas.id),
 });
 
 // ─────────── Push tokens ───────────
-export const pushTokens = sqliteTable("push_token", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const pushTokens = mysqlTable("push_token", {
+  id: int("id").primaryKey().autoincrement(),
   token: text("token"),
-  platform: text("platform"),
-  id_us: integer("id_us").references(() => usuarios.id),
+  platform: varchar("platform", { length: 50 }),
+  id_us: int("id_us").references(() => usuarios.id),
 });
 
 // ─────────── Settings (clave-valor) ───────────
-export const settings = sqliteTable("setting", {
-  key: text("key").primaryKey(),
+export const settings = mysqlTable("setting", {
+  key: varchar("key", { length: 255 }).primaryKey(),
   value: text("value"),
 });
 
 // ─────────── Patient reminders (push) ───────────
-export const patientReminders = sqliteTable("patient_reminder", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  id_pac: integer("id_pac").references(() => pacientes.id),
-  hour: integer("hour"),
-  minute: integer("minute"),
-  last_sent: text("last_sent"),
-  created_by: integer("created_by").references(() => especialistas.id),
-  active: integer("active"),
+export const patientReminders = mysqlTable("patient_reminder", {
+  id: int("id").primaryKey().autoincrement(),
+  id_pac: int("id_pac").references(() => pacientes.id),
+  hour: int("hour"),
+  minute: int("minute"),
+  last_sent: varchar("last_sent", { length: 50 }),
+  created_by: int("created_by").references(() => especialistas.id),
+  active: int("active"),
 });

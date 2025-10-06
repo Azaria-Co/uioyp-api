@@ -1,3 +1,5 @@
+
+
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { faqs, especialistas } from '../../db/schema.js';

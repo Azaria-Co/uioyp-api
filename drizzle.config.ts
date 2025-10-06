@@ -1,3 +1,4 @@
+//drizzle.config.ts
 import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
 
@@ -6,10 +7,13 @@ dotenv.config();
 export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./src/db/migrations",
-  dialect: "sqlite",
+  dialect: "mysql",
   dbCredentials: {
-    url: requiredEnv("TURSO_DB_URL"),
-    token: requiredEnv("TURSO_AUTH_TOKEN"),
+    host: requiredEnv("DB_HOST"),
+    port: parseInt(requiredEnv("DB_PORT")),
+    user: requiredEnv("DB_USER"),
+    password: requiredEnv("DB_PASSWORD"),
+    database: requiredEnv("DB_NAME"),
   },
   verbose: true,
   strict: true,

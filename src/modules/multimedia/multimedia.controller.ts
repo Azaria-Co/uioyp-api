@@ -56,13 +56,15 @@ export class MultimediaController {
       throw new BadRequestException('No se proporcionó ningún archivo');
     }
 
-    // Leer el buffer del archivo subido
+    // Leer el buffer del archivo subido y convertir a base64
     const fs = await import('fs/promises');
-    let buffer: Buffer | null = null;
+    let base64Data: string | null = null;
     try {
-      buffer = await fs.readFile(file.path);
+      const buffer = await fs.readFile(file.path);
+      base64Data = `data:${file.mimetype};base64,${buffer.toString('base64')}`;
     } catch (err) {
-      buffer = null;
+      console.error('Error leyendo archivo:', err);
+      base64Data = null;
     }
 
     const savedFile = await this.multimediaService.saveFileInfo({
@@ -72,36 +74,69 @@ export class MultimediaController {
       file_size: file.size,
       mime_type: file.mimetype,
       id_post: id_post ? parseInt(id_post) : null,
-      contenido_blob: buffer,
+      contenido_blob: base64Data, // Guardar como base64
     });
 
     return {
       message: 'Archivo subido exitosamente',
       file: savedFile,
-      url: `/multimedia/file/${file.filename}`,
+      url: `/multimedia/file/${savedFile.id}`, // Usar ID en lugar de filename
     };
   }
 
-  @Get('file/:filename')
-  async serveFile(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = join(process.cwd(), 'uploads', filename);
-    const fs = await import('fs/promises');
-    if (existsSync(filePath)) {
-      return res.sendFile(filePath);
-    }
-    // Si no existe en disco, buscar en la base por descripcion
-    const multimediaRow = await this.multimediaService.findByDescripcion(filename);
-    if (!multimediaRow || !multimediaRow.contenido_blob) {
+  @Get('file/:id')
+  async serveFile(@Param('id') id: string, @Res() res: Response) {
+    try {
+      // Buscar por ID primero
+      const multimediaRow = await this.multimediaService.findById(parseInt(id));
+      
+      if (!multimediaRow) {
+        return res.status(404).json({ message: 'Archivo no encontrado' });
+      }
+
+      // Si tiene contenido_blob (base64), servirlo desde la base de datos
+      if (multimediaRow.contenido_blob) {
+        const base64Data = multimediaRow.contenido_blob as string;
+        
+        // Extraer el tipo MIME del base64
+        const mimeMatch = base64Data.match(/^data:([^;]+);base64,/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        
+        // Extraer solo los datos base64 (sin el prefijo data:)
+        const base64Only = base64Data.replace(/^data:[^;]+;base64,/, '');
+        const buffer = Buffer.from(base64Only, 'base64');
+        
+        res.set({
+          'Content-Type': mimeType,
+          'Content-Length': buffer.length,
+          'Cache-Control': 'public, max-age=31536000', // Cache por 1 año
+        });
+        
+        return res.send(buffer);
+      }
+      
+      // Fallback: servir desde archivo físico si no hay base64
+      if (multimediaRow.url) {
+        const fs = await import('fs/promises');
+        const fileExists = await fs.access(multimediaRow.url).then(() => true).catch(() => false);
+        
+        if (fileExists) {
+          const file = await fs.readFile(multimediaRow.url);
+          res.set({
+            'Content-Type': 'image/jpeg',
+            'Content-Length': file.length,
+            'Cache-Control': 'public, max-age=31536000',
+          });
+          return res.send(file);
+        }
+      }
+      
       return res.status(404).json({ message: 'Archivo no encontrado' });
+      
+    } catch (error) {
+      console.error('Error sirviendo archivo:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
-    // Determinar el mime type
-    const mimeType = (multimediaRow as any).mime_type || 'image/jpeg';
-    const blobBuffer = Buffer.isBuffer(multimediaRow.contenido_blob)
-      ? multimediaRow.contenido_blob as Buffer
-      : Buffer.from(multimediaRow.contenido_blob as any);
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Length', blobBuffer.length);
-    return res.send(blobBuffer);
   }
 
   @Get('post/:postId')

@@ -10,7 +10,7 @@ interface FileInfo {
   file_size: number;
   mime_type: string;
   id_post: number | null;
-  contenido_blob?: Buffer | null;
+  contenido_blob?: string | null; // Cambiado a string para base64
 }
 
 interface MultimediaInfo {
