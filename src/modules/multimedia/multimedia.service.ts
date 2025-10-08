@@ -1,7 +1,7 @@
-// ...existing code...
 import { Injectable } from '@nestjs/common';
 import { db } from '../../db/client.js';
 import { multimedia } from '../../db/schema.js';
+import { eq, and, desc } from 'drizzle-orm';
 
 interface FileInfo {
   filename: string;
@@ -10,7 +10,7 @@ interface FileInfo {
   file_size: number;
   mime_type: string;
   id_post: number | null;
-  contenido_blob?: string | null; // Cambiado a string para base64
+  contenido_blob?: string | null;
 }
 
 interface MultimediaInfo {
@@ -22,7 +22,6 @@ interface MultimediaInfo {
   file_path?: string;
   file_size?: number;
   mime_type?: string;
-  // Para videos y enlaces
   url?: string;
   titulo?: string;
   descripcion?: string;
@@ -31,12 +30,11 @@ interface MultimediaInfo {
 @Injectable()
 export class MultimediaService {
   async findByDescripcion(descripcion: string) {
-    const { eq } = await import('drizzle-orm');
     const result = await db.select().from(multimedia).where(eq(multimedia.descripcion, descripcion));
     return result[0] ?? null;
   }
+  
   async findById(id: number) {
-    const { eq } = await import('drizzle-orm');
     const result = await db.select().from(multimedia).where(eq(multimedia.id, id));
     return result[0] ?? null;
   }
@@ -44,14 +42,13 @@ export class MultimediaService {
   async saveFileInfo(fileInfo: FileInfo) {
     await db.insert(multimedia).values({
       tipo: 'image',
-      url: fileInfo.file_path, // Usar file_path como url
+      url: fileInfo.file_path, 
       titulo: fileInfo.original_name,
-      descripcion: fileInfo.filename,
+      descripcion: fileInfo.filename, 
       contenido_blob: fileInfo.contenido_blob ?? null,
       id_post: fileInfo.id_post,
     });
-    // Consultar el registro recién creado por campos reales y no nulos
-    const { eq, and, desc } = await import('drizzle-orm');
+    
     const whereClauses = [
       eq(multimedia.tipo, 'image'),
       eq(multimedia.url, fileInfo.file_path),
@@ -76,7 +73,6 @@ export class MultimediaService {
       id_post: multimediaInfo.id_post,
     };
 
-    // Agregar campos según el tipo y esquema real
     if (multimediaInfo.tipo === 'image') {
       values.url = multimediaInfo.file_path;
       values.titulo = multimediaInfo.original_name;
@@ -88,8 +84,6 @@ export class MultimediaService {
     }
 
     await db.insert(multimedia).values(values);
-    // Consultar el registro recién creado por campos reales y no nulos
-    const { eq, and, desc } = await import('drizzle-orm');
     const whereClauses = [
       eq(multimedia.tipo, multimediaInfo.tipo),
       eq(multimedia.id_post, multimediaInfo.id_post)
@@ -113,13 +107,11 @@ export class MultimediaService {
   }
 
   async findByPostId(postId: number) {
-    const { eq } = await import('drizzle-orm');
     const result = await db.select().from(multimedia).where(eq(multimedia.id_post, postId));
     return result;
   }
 
   async deleteById(id: number) {
-    const { eq } = await import('drizzle-orm');
     await db.delete(multimedia).where(eq(multimedia.id, id));
     return { deleted: true };
   }

@@ -16,7 +16,7 @@ export class PostService {
         titulo: posts.titulo,
         fecha: posts.fecha,
         texto: posts.texto,
-        tipo: posts.tipo, // Agregar campo tipo
+        tipo: posts.tipo,
         id_esp: posts.id_esp,
         especialista: {
           id: especialistas.id,
@@ -34,6 +34,7 @@ export class PostService {
     
     return result;
   }
+  
   async createPost(data: { titulo: string; texto: string; tipo?: string; id_esp: number; multimedia: string[] }) {
     // Insertar el post con fecha actual
     const fechaStr = new Date().toISOString();
@@ -44,6 +45,7 @@ export class PostService {
       fecha: fechaStr,
       id_esp: data.id_esp,
     });
+    
     // Consultar el post recién creado por campos únicos
     const { eq, and, desc } = await import('drizzle-orm');
     const [post] = await db
@@ -56,23 +58,20 @@ export class PostService {
       ))
       .orderBy(desc(posts.id))
       .limit(1);
-    // Insertar multimedia asociada (temporalmente comentado hasta migrar la BD)
+      
     if (data.multimedia && data.multimedia.length > 0 && post) {
       console.log('Multimedia pendiente de implementar tras migración de BD:', data.multimedia);
-      // TODO: Implementar después de migrar tabla multimedia
-      /*
-      for (const tipo of data.multimedia) {
+      
+      for (const mediaValue of data.multimedia) {
         await db.insert(multimedia).values({ 
-          filename: tipo, // Temporal
-          original_name: tipo,
-          file_path: `/uploads/${tipo}`,
-          file_size: 0,
-          mime_type: 'image/jpeg',
+          url: `/uploads/${mediaValue}`, 
+          titulo: mediaValue,         
+          tipo: 'image',             
           id_post: post.id 
         });
       }
-      */
     }
+    
     // Devolver el post creado
     return post;
   }
@@ -83,8 +82,10 @@ export class PostService {
     const [post] = await db.select().from(posts).where(eq(posts.id, id));
     if (!post) throw new NotFoundException('Post no encontrado');
     if (post.id_esp !== id_esp) throw new ForbiddenException('No puedes borrar este post');
+    
     // Borrar multimedia asociada
     await db.delete(multimedia).where(eq(multimedia.id_post, id));
+    
     // Borrar el post
     await db.delete(posts).where(eq(posts.id, id));
     return { deleted: true };
@@ -184,7 +185,7 @@ export class PostService {
 
   // Top posts con más likes por especialista
   async getTopLikedByEspecialista(id_esp: number, limit: number = 10) {
-    const { eq, and } = await import('drizzle-orm');
+    const { eq } = await import('drizzle-orm');
 
     const likeCount = (postId: any) => sql<number>`(
       SELECT COUNT(*) FROM reaccion WHERE reaccion.id_post = ${postId}
