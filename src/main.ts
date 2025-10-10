@@ -1,10 +1,32 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync } from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Configurar HTTPS si los certificados están disponibles
+  let httpsOptions: { key: Buffer; cert: Buffer } | undefined = undefined;
+  
+  try {
+    const keyPath = join(process.cwd(), 'private-key.pem');
+    const certPath = join(process.cwd(), 'certificate.pem');
+    
+    if (existsSync(keyPath) && existsSync(certPath)) {
+      httpsOptions = {
+        key: readFileSync(keyPath),
+        cert: readFileSync(certPath),
+      };
+      console.log('🔒 Certificados SSL encontrados, iniciando en modo HTTPS');
+    } else {
+      console.log('⚠️  Certificados SSL no encontrados, iniciando en modo HTTP');
+    }
+  } catch (error) {
+    console.log('⚠️  Error al cargar certificados SSL, iniciando en modo HTTP');
+  }
+
+  const app = await NestFactory.create(AppModule, {
+    httpsOptions,
+  });
   
   // Asegurar que existe la carpeta uploads
   const uploadsDir = join(process.cwd(), 'uploads');
@@ -28,6 +50,12 @@ async function bootstrap() {
     next();
   });
 
-  await app.listen(process.env.PORT ?? 3001);
+  const port = process.env.PORT ?? 3001;
+  const host = process.env.HOST ?? '0.0.0.0';
+  
+  await app.listen(port, host);
+  
+  const protocol = httpsOptions ? 'https' : 'http';
+  console.log(`🚀 Servidor corriendo en ${protocol}://${host}:${port}`);
 }
 bootstrap();

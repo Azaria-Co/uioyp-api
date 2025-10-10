@@ -2,3 +2,15 @@ node_modules/
 dist/
 *.log
 .env
+
+# Certificados SSL (no deben estar en git)
+*.pem
+*.key
+*.crt
+
+# Archivos de sistema
+.DS_Store
+.cat
+
+# Carpeta de uploads (archivos subidos por usuarios)
+uploads/
