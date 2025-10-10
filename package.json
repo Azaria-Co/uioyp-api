@@ -9,7 +9,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "node --openssl-legacy-provider node_modules/@nestjs/cli/bin/nest.js start",
     "start:dev": "node --openssl-legacy-provider node_modules/@nestjs/cli/bin/nest.js start --watch",
     "start:debug": "node --openssl-legacy-provider node_modules/@nestjs/cli/bin/nest.js start --debug --watch",
     "start:prod": "node --openssl-legacy-provider dist/main",
